@@ -2,3 +2,8 @@
 Darian Marie Bruce
 This program reads a CSV file and creates a line plot
 05/10/2026'''
+
+import matplotlib.pyplot as plt
+import csv
+import datetime
+
