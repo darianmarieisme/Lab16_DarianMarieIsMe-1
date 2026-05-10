@@ -8,44 +8,68 @@ from pathlib import Path
 import csv
 import datetime
 
-path: Path = Path('OHUR.csv')
+graph_path: Path = Path('OHUR.csv')
+output_path: Path = Path("ohio_unemployment.png")
 
-lines = path.read_text(encoding = 'utf-8').splitlines()
+def read_unemployment_data(file_path: Path) -> tuple[list[datetime.datetime], list[float]]:
+    '''
+    This method reads the CSV file and outputs the data as a tuple
+    parameters:
+    file_path: the path where the OHUR CSV is stored
+    Output:
+    A tuple that includes a list of all dates, then a list of all ue rates
+    '''
 
-reader = csv.reader(lines)
+    dates: list[datetime.datetime] = []
+    unemployment_rates: list[float] = []
 
-header_row = next(reader)
+    lines = graph_path.read_text(encoding = 'utf-8').splitlines()
+    reader = csv.reader(lines)
 
-print(header_row)
+    header_row = next(reader)
+    print(header_row)
 
-# for index, col_title in enumerate(header_row):
-    # print(f'{index} {col_title}', end=' ')
+    for row in reader:
+        try: 
+            date = datetime.datetime.strptime(row[0], "%Y-%m-%d")
+            ohur: float = float(row[1])
+        except ValueError:
+            print(f"Could not convert data in row: {row}")
 
-# print()
+        else:
+            dates.append(date)
+            unemployment_rates.append(ohur)
 
-#processing info from file
-dates: list = []
+    return dates, unemployment_rates
 
-unemployment_rates: list = []
+def create_graph(dates: list[datetime.datetime],
+                 unemployment_rates: list[float],
+                 output_path: Path) -> None:
+    '''
+    This method creates and outputs a graph using dates and unemployment
+    rates from the CSV file
+    parameters:
+    dates: read from the CSV file
+    unemployment_rates: read from the CSV file
+    output_path: the path of the output file
+    '''
+    plt.style.use('dark_background')
 
-for row in reader:
-    try: 
-        date = datetime.datetime.strptime(row[0], "%Y-%m-%d")
-        ohur: float = float(row[1])
-    except ValueError:
-        print(f"Could not convert data in row: {row}")
+    figure, graph = plt.subplots()
 
-    else:
-        dates.append(date)
-        unemployment_rates.append(ohur)
+    plt.title("Ohio Unemployment (by Month): 1976 - 2022")
+    plt.xlabel("Date")
+    plt.ylabel("Unemployment Rate")
 
-#graph
+    graph.plot(dates, unemployment_rates, color = 'blue')
+    
+    figure.savefig(output_path)
+    plt.show() 
 
-plt.style.use('dark_background')
-figure, graph = plt.subplots()
-plt.title("Ohio Unemployment (by Mont): 1976 - 2022")
-plt.xlabel("Date")
-plt.ylabel("Unemployment Rate")
+def main() -> None:
+    '''Runs the unemployment graph program'''
+    dates, unemployment_rates = read_unemployment_data(graph_path)
+    create_graph(dates, unemployment_rates, output_path)
 
-graph.plot(dates, unemployment_rates, color = 'blue')
-plt.show() 
+if __name__ == "__main__":
+    main()
